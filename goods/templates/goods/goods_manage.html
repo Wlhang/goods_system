@@ -1,0 +1,404 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+
+{% block header %}
+    <link rel="stylesheet" href="/users/static/myPagination/myPagination.css" />
+    <script src="/users/static/myPagination/myPagination.js"></script>
+    <style type="text/css">
+        .sort{
+            color:#B10000;
+            background: #F1EDEC;
+            z-index: 10;
+        }
+    </style>
+    <script type="text/javascript">
+        function edit_shop(obj) {
+            document.getElementById(obj+'_shop').style.display = 'none';
+            document.getElementById(obj+'_shop_input').style.display = 'block';
+            document.getElementById(obj+'_button_update').style.display = 'block';
+            document.getElementById(obj+'_cancel_shop').style.display = 'block';
+        }
+        function cancel_shop(obj) {
+            document.getElementById(obj+'_shop').style.display = 'block';
+            document.getElementById(obj+'_shop_input').style.display = 'none';
+            document.getElementById(obj+'_button_update').style.display = 'none';
+            document.getElementById(obj+'_cancel_shop').style.display = 'none';
+        }
+        function create_goods() {
+            document.getElementById('create_goods').style.display = 'block';
+            document.getElementById('g_cover').style.display = 'block';
+        }
+        function c_cancel() {
+            document.getElementById('create_goods').style.display = 'none';
+            document.getElementById('g_cover').style.display = 'none';
+        }
+        function delete_confirm()
+        {
+            var r=confirm("确认删除这个商铺吗？此操作不可逆，请小心确认！");
+            if (r==true)
+            {
+                var s_id = document.getElementById('shop_id').value;
+                $.ajax({
+                    url: '/goods/delete_shops?shop_id='+s_id,
+                    type: 'GET',
+                    success:function(returnValue){
+                        if(returnValue == 1){
+                            alert('删除成功！');
+                            window.location='/goods/shops';
+                        }
+                        else if(returnValue==2){
+                            alert("你不是这个商铺的拥有者！");
+                            // debugger;
+                            window.opener=null;
+                            window.open('','_self');
+                            window.location.href="about:blank";
+                            window.close();//当断点执行到这里时会显示“Scripts may close only the windows that were opened by it.”所以要加上面“about:blank”页面才可以成功关闭
+                        }
+                        else{
+                            alert("删除失败！");
+                        }
+                    },
+                    error: function (returnValue) {
+                        alert("发送失败！");
+                    }
+                })
+            }
+        }
+        function changepic(obj,img) {
+                //console.log(obj.files[0]);//这里可以获取上传文件的name
+            if(obj.files[0]!=undefined){
+                var newsrc = getObjectURL(obj.files[0]);
+                document.getElementById(img).src=newsrc;
+            }
+            else {
+                document.getElementById(img).src='/media/picture/send.png';
+            }
+            // alert(img);
+        }
+        //建立一個可存取到該file的url
+        function getObjectURL(file) {
+            var url = null ;
+            // 下面函数执行的效果是一样的，只是需要针对不同的浏览器执行不同的 js 函数而已
+            if (window.createObjectURL!=undefined) { // basic
+                url = window.createObjectURL(file) ;
+            }else if (window.webkitURL!=undefined) { // webkit or chrome
+                url = window.webkitURL.createObjectURL(file) ;
+            }else if (window.URL!=undefined) { // mozilla(firefox)
+                url = window.URL.createObjectURL(file) ;
+            }
+            return url ;
+        }
+        function picture_upload() {
+            document.getElementById('id_picture').click();
+        }
+
+        $(document).ready(function()
+        {
+            $('#form1').submit(function(event){
+                if(!this.checkValidity())
+                {
+                    event.preventDefault();
+                    $('#form1 :input:visible[required="required"]').each(function()
+                    {
+                        if(!this.validity.valid)
+                        {
+                            $(this).focus();
+                            // break
+                            return false;
+                        }
+                    });
+                }
+                else{
+                    event.preventDefault();
+                    //'name', 'picture', 'goods_type', 'price', 'remain', 'location','instruction'
+                    var name = document.getElementById('id_name').value;
+                    var picture = document.getElementById('id_picture').files[0];
+                    var goods_type = document.getElementById('id_goods_type').value;
+                    var price = document.getElementById('id_price').value;
+                    var remain = document.getElementById('id_remain').value;
+                    var location = document.getElementById('id_location').value;
+                    var instruction = document.getElementById('id_instruction').value;
+                    var shop_id = document.getElementById('shop_id').value;
+                    var formdata = new FormData();
+                    formdata.append('name',name);
+                    formdata.append('picture',picture);
+                    formdata.append('goods_type',goods_type);
+                    formdata.append('price',price);
+                    formdata.append('remain',remain);
+                    formdata.append('location',location);
+                    formdata.append('instruction',instruction);
+                    formdata.append('shop_id',shop_id);
+                    // alert(name);
+                    //alert(formdata);
+                    $.ajax({
+                        contentType: false,
+                        processData: false,
+                        cache:false,
+                        type:"POST",
+                        url:"{% url 'goods:create_goods' %}",
+                        data:formdata,
+                        // dataType:'formdata',
+                        async:true,
+                        beforeSend:function(xhr, settings) {
+                            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                        },
+                        success:function(returnValue){
+                            if(returnValue == 1){
+                                alert('添加成功');
+                                document.getElementById('status_id').innerText=''
+                                window.location.reload();//刷新当前页面
+                            }
+                            else{
+                                document.getElementById('status_id').innerText='添加失败'
+                            }
+                        },
+                        error: function (returnValue) {
+                                alert("提交失败！");
+                            }
+                    });
+                }
+            });
+        });
+        function active(obj) {
+            obj.classList.add("active");
+            obj.style.cursor = 'pointer'
+        }
+        function unactive(obj) {
+            obj.classList.remove("active");
+        };
+        function get_url(b,a) {
+            v = document.getElementById('s_t').value;
+            sort_cur = {{ sort|safe }};
+            key = document.getElementById('key').value;
+            var url = location.href.split('?')[0]+'?';
+            var status = document.getElementById('dropdownMenu1').innerText;
+            //alert(search_cur);
+            if(b==0){
+                if(sort_cur=='1' && a=='1'){
+                    v = v^1;
+                }
+                else if(sort_cur=='2' && a=='2'){
+                    v = v^2;
+                }
+                else if(sort_cur=='3' && a=='3'){
+                    v = v^4;
+                }
+                else if(sort_cur=='4' && a=='4'){
+                    v = v^8;
+                }
+                if(key != ""){
+                    url += "search=" + key + '&sort='+a+'&v='+v.toString()+'&status='+status;
+                }
+                else {
+                    url += 'sort=' + a + '&v=' + v.toString()+'&status='+status;
+                }
+            }
+            else if(b == 1){
+                if(key != ""){
+                    url += "search=" + key;
+                    url += '&sort='+sort_cur+'&v='+ v.toString()+'&Page='+ a+'&status='+status;
+                }
+                else{
+                    url += 'sort='+sort_cur+'&v='+ v.toString()+'&Page='+ a+'&status='+status;
+                }
+            }
+            else if(b==2){
+                search_cur = document.getElementById('id_search').value;
+                url += "search=" + search_cur;
+                url += '&sort='+sort_cur+'&v='+ v.toString();
+            }
+            else if(b==3){
+                search_cur = document.getElementById('id_search').value;
+                url += "status=" + a;
+                if(search_cur!=""){
+                    url += "&search=" + search_cur;
+                }
+                url += '&sort='+sort_cur+'&v='+ v.toString();
+            }
+            return url;
+        }
+        function s_click(obj,a){
+            //alert(v);
+            location.href=get_url(0,a);
+        }
+        window.onload=function () {
+            sort_cur = {{ sort|safe }};
+            sort_cur = "s_" + sort_cur;
+            document.getElementById(sort_cur).classList.add('sort');
+            new Page({
+                id: 'pagination',
+                pageTotal: {{ total_page }}, //必填,总页数
+                pageAmount: 24,  //每页多少条
+                dataTotal: {{ total_goods }}, //总共多少条数据
+                curPage:{{ page|safe }}, //初始页码,不填默认为1
+                pageSize: 5, //分页个数,不填默认为5
+                showPageTotalFlag:true, //是否显示数据统计,不填默认不显示
+                showSkipInputFlag:true, //是否支持跳转,不填默认不显示
+                getPage: function (page) {
+                    //获取当前页数
+                    console.log(page);
+                    location.href = get_url(1,page);
+
+                    {#document.getElementById("<%=currentpage.ClientID%>").value = page;#}
+                    {#document.getElementById("<%=award.ClientID%>").value = 0;#}
+                    {#document.getElementById("<%=refresh.ClientID%>").click();#}
+                },
+            })
+        };
+        function goods_search() {
+            location.href = get_url(2,-1);
+        }
+        function s_status(obj) {
+            {#var s = obj.innerText;#}
+            {#document.getElementById('dropdownMenu1').innerText = s;#}
+            location.href = get_url(3,obj.innerText);
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <table border="0px" style="margin-bottom: 20px;">
+            <form action="{% url 'goods:update_shop' %}" method="post">
+            <tr>
+                <td>
+                    <h2 id="name_shop" style="position: relative;">
+                        {{ shop.name }}
+                        <a title="编辑">
+                            <img onclick="edit_shop('name')" src="/media/picture/edit.png" width="25" height="25" style="position: absolute;top: 5px;right: -50px">
+                        </a>
+                    </h2>
+                    {% csrf_token %}
+                    <input class="form-control" id="name_shop_input" name="name" placeholder="shop_name" value="{{ shop.name }}" style="display: none;width: 150px;margin-top:20px;margin-bottom: 9px;">
+                    <input id="shop_id" name="shop_id" value="{{ shop.id }}" style="display: none;">
+                </td>
+                <td style="padding-top: 10px;">
+                    <button id="name_button_update" class="btn btn-primary" type="submit" style="display: none;margin-left: 15px;margin-right: 5px;">确认</button>
+                </td>
+                <td style="padding-top: 10px;">
+                    <button id="name_cancel_shop" onclick="cancel_shop('name')" class="btn btn-primary" type="button" style="display: none;">取消</button>
+                </td>
+
+            </tr>
+            <tr style="height: 30px;width: 500px">
+                <td>
+                    <div id="instruction_shop" style="margin-left: 20px;position: relative;margin-top: 10px;max-width: 300px;">
+                        <em style="font-size: 16px;">{{ shop.instruction }}</em>
+                        <a title="编辑">
+                            <img onclick="edit_shop('instruction')" src="/media/picture/edit.png" width="25" height="25" style="position: absolute;right: -50px;top: -5px;">
+                        </a>
+                    </div>
+                    <textarea maxlength="100" class="form-control" id="instruction_shop_input" name="instruction" placeholder="shop_instruction" style="display: none;width: 300px;">{{ shop.instruction }}</textarea>
+                </td>
+                <td style="padding-top: 10px;">
+                    <button id="instruction_button_update" class="btn btn-primary" type="submit" style="display: none;margin-left: 15px;margin-right: 5px;">确认</button>
+                </td>
+                <td style="padding-top: 10px;">
+                    <button id="instruction_cancel_shop" onclick="cancel_shop('instruction')" class="btn btn-primary" type="button" style="display: none;">取消</button>
+                </td>
+            </tr>
+            </form>
+        </table>
+        <button id="add_goods" onclick="create_goods()" class="btn btn-primary" type="button" style="position: absolute;left: 47%;top: 18%;">添加商品</button>
+        <button id="delete_shop" onclick="delete_confirm()" class="btn btn-primary" type="button" style="position: absolute;right: 16%;top: 12%;background-color: red;border-color: red">删除商铺</button>
+        <form method="post" onkeydown="if(event.keyCode==13){goods_search();}">
+                {% csrf_token %}
+                <span style="font-size: 15px;position: absolute;top: 14.5%;right: 20.5%;">{% bootstrap_form form2 %} </span>
+                <input id="id_search" onclick="goods_search()" class="form-control" type="button"  style="color: dodgerblue;position: absolute;top: 18%;right: 16%;width: 60px" value="搜索">
+                <input type="text" id="key" value="{{ key|default_if_none:"" }}" style="display: none;">
+        </form>
+        <br>
+        <div class="col-md-5" style="padding: 0px;">
+            <table class="table-bordered table">
+                <tr>
+                    <td id="s_1" onclick="s_click(this,1)" onmouseover="active(this)" onmouseout="unactive(this)">
+                        日期<span class="caret"></span>
+                    </td>
+                    <td id="s_2" onclick="s_click(this,2)" onmouseover="active(this)" onmouseout="unactive(this)">
+                        销量<span class="caret"></span>
+                    </td>
+                    <td id="s_3" onclick="s_click(this,3)" onmouseover="active(this)" onmouseout="unactive(this)">
+                        价格<span class="caret"></span>
+                    </td>
+                    <td id="s_4" onclick="s_click(this,4)" onmouseover="active(this)" onmouseout="unactive(this)">
+                        剩余<span class="caret"></span>
+                    </td>
+                </tr>
+            </table>
+            <input id="s_t" type="hidden" value="{{ s_t }}">
+        </div>
+        <div class="col-md-5">
+
+        </div>
+        <div class="col-md-2">
+            <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style="width: 100px;">
+                {{ status_sort }}
+                <span class="caret"></span>
+            </button>
+
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" style="min-width: 100px;">
+                <li onclick="s_status(this,1)"><a>全部</a></li>
+                <li onclick="s_status(this,2)"><a>已上架</a></li>
+                <li onclick="s_status(this,3)"><a>待审核</a></li>
+                <li role="separator" class="divider"></li>
+                <li onclick="s_status(this,4)"><a>已下架</a></li>
+                <li onclick="s_status(this,5)"><a>已拒绝</a></li>
+            </ul>
+</div>
+        </div>
+    </div>
+
+    <div class="container" style="margin-bottom: 20px;padding-bottom: 50px;position: relative;">
+        {% if not goodses %}
+            <h2>暂无数据</h2>
+        {% endif %}
+        {% for goods in goodses %}
+            <div class="col-md-2" style="padding: 0px;margin-bottom: 18px">
+                <a href="../detail/{{ goods.store_id.id }}/{{ goods.id }}"><img src="{{ goods.picture}}?{{ time }}" width="150" height="150" /></a>
+                <div style="width: 150px;display:block;color:red;font-size: 20px;position: relative">
+                    <strong>
+                        ¥{{ goods.price }}
+                        <span style="text-align: right;position: absolute;right: 0;bottom: 5px;font-size: 12px;color: darkgray">
+                            {% if sort == '2' %}
+                                销量:{{ goods.sales }}
+                            {% else %}
+                                {% if goods.remain <= 10 %}
+                                    <B style="color: red">剩余:{{ goods.remain }}</B>
+                                {% else %}
+                                    剩余:{{ goods.remain }}
+                                {% endif %}
+                            {% endif %}
+                        </span>
+                    </strong>
+                </div>
+                <span style="font-size: 13px;width: 150px;text-align: center;display:block;word-wrap:break-word;"><strong>{{ goods.name|truncatechars_html:20 }}</strong></span>
+            </div>
+        {% endfor %}
+        <div id="pagination" class="pagination" onsubmit="getpage()" onclick="getpage()" style="margin-bottom:0px;position: absolute;left: 18%;bottom: 0px;margin-top: 20px;"></div>
+    </div>
+
+<!--遮挡层-->
+    <div onclick="c_cancel()" id="g_cover" style="opacity:0.1;background-color:#000;width:100%;height:100%;position: fixed;left:0;top:0;display:none;overflow: hidden;"></div>
+
+<!--弹出层，-->
+    <div id="create_goods" style=" width:600px;height:600px;z-index:1001;
+    position: fixed; display:none;top:5%; left:30%;background-color: ghostwhite">
+
+         <table style="width: 100%;">
+             <tr style="padding-top: 5px">
+                 <td style="width: 500px;height: auto;padding: 20px;">
+                     <h2>添加商品</h2>
+                     <form id="form1" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% bootstrap_form form %}
+                        <img onclick="picture_upload()" id="show" src="/media/picture/send.png" width="200" height="200" style="position: absolute;top:18%;right: 10%;">
+                        <span id="status_id" style="color: red">{{ status }}</span>
+                        <button  type="submit" id="add_confirm" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:absolute;left: 30%;width: 60px;height: 35px;">添加</button>
+                        <button onclick="c_cancel()" type="button" id="cancel" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:absolute;right: 40%;width: 60px;height: 35px;">取消</button>
+                    </form>
+                 </td>
+             </tr>
+         </table>
+    </div>
+{% endblock %}

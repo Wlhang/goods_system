@@ -1,0 +1,11 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+{% block content %}
+
+    <form method="post" action="{% url 'users:modify' %}">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    <p><span style="color: red">{{ status }}</span></p>
+    <button name="submit" class="btn btn-primary">confirm</button>
+    </form>
+{% endblock content %}

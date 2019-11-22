@@ -1,0 +1,187 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+
+{% block header %}
+    <script type="text/javascript">
+        function changepic(obj,img) {
+                //console.log(obj.files[0]);//这里可以获取上传文件的name
+            if(obj.files[0]!=undefined){
+                var newsrc = getObjectURL(obj.files[0]);
+                document.getElementById(img).src=newsrc;
+            }
+            else {
+                document.getElementById(img).src='/media/picture/send.png';
+            }
+            // alert(img);
+        }
+        //建立一個可存取到該file的url
+        function getObjectURL(file) {
+            var url = null ;
+            // 下面函数执行的效果是一样的，只是需要针对不同的浏览器执行不同的 js 函数而已
+            if (window.createObjectURL!=undefined) { // basic
+                url = window.createObjectURL(file) ;
+            }else if (window.webkitURL!=undefined) { // webkit or chrome
+                url = window.webkitURL.createObjectURL(file) ;
+            }else if (window.URL!=undefined) { // mozilla(firefox)
+                url = window.URL.createObjectURL(file) ;
+            }
+            return url ;
+        }
+        function picture_upload() {
+            document.getElementById('id_picture').click();
+        }
+        function goods_cancel() {
+            location.href  = '{{ url|safe }}'
+        }
+        function confirm_goods() {
+            document.getElementById('id_picture').required = false;
+            document.getElementById('add_confirm').click();
+        }
+        window.onload = function () {
+            var a = document.getElementById('yy').value;
+            // document.getElementById('id_picture').style.display = "none";
+            // alert(a);
+            if(a==1) {
+                alert('提交成功！');
+                document.getElementById('yy').value =  0;
+                window.location.href=window.location.href;
+                window.location.reload;
+            }
+            else if(a!=0){
+                alert('提交失败！');
+            }
+        };
+        function delete_confirm()
+        {
+            var r=confirm("确认删除这个商品吗？");
+            if (r==true)
+            {
+                var url = document.URL;
+                var s_id = url.split('/')[6];
+                {#alert(url);#}
+                $.ajax({
+                    url: '/goods/delete_goods?good_id='+s_id,
+                    type: 'GET',
+                    success:function(returnValue){
+                        if(returnValue == 1){
+                            alert('删除成功！');
+                            window.location.href = '{{ url|safe }}';
+                        }
+                        else if(returnValue==2){
+                            alert("你不是这个商品的拥有者！");
+                            // debugger;
+                            window.opener=null;
+                            window.open('','_self');
+                            window.location.href="about:blank";
+                            window.close();//当断点执行到这里时会显示“Scripts may close only the windows that were opened by it.”所以要加上面“about:blank”页面才可以成功关闭
+                        }
+                        else{
+                            alert("删除失败！");
+                        }
+                    },
+                    error: function (returnValue) {
+                        alert("发送失败！");
+                    }
+                })
+            }
+        }
+        function check_goods(a) {
+            var s_id = document.URL.split('/')[6];
+            var r=confirm("确认下架这个商品吗？");
+            if (r==true) {
+                $.ajax({
+                    url: '/goods/check_goods_operate?goods_id=' + s_id + '&operate=' + a.toString(),
+                    type: 'GET',
+                    success: function (returnValue) {
+                        if (returnValue == 1) {
+                            alert('修改成功！');
+                            window.location = '{{ url|safe }}';
+                        } else if (returnValue == 2) {
+                            alert("非法访问！");
+                            // debugger;
+                            window.opener = null;
+                            window.open('', '_self');
+                            window.location.href = "about:blank";
+                            window.close();//当断点执行到这里时会显示“Scripts may close only the windows that were opened by it.”所以要加上面“about:blank”页面才可以成功关闭
+                        } else {
+                            alert("操作失败！");
+                        }
+                    },
+                    error: function (returnValue) {
+                        alert("发送失败！");
+                    }
+                })
+            }
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="container" style="width: 50%;height:600px;position: relative">
+        {% if goods.status == 1 %}
+            <button id="delete_goods" onclick="delete_confirm()" class="btn btn-primary" type="button" style="position: absolute;right: 1%;top: 1%;background-color: red;border-color: red">删除商品</button>
+            <button id="delete_goods" onclick="check_goods(3)" class="btn btn-primary" type="button" style="position: absolute;right: 1%;top: 8%;background-color: red;border-color: red">下架商品</button>
+        {% else %}
+            <button id="delete_goods" onclick="delete_confirm()" class="btn btn-primary" type="button" style="position: absolute;right: 1%;top: 3%;background-color: red;border-color: red">删除商品</button>
+        {% endif %}
+        {% if goods.status == 0 or goods.status == 1 or success == 1 %}
+            <h2>修改商品信息</h2>
+            <form id="form1" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                <img onclick="picture_upload()" id="show" src="{{ picture }}" width="200" height="200" style="position: absolute;top:17%;right: 10%;">
+                <span id="status_id" style="color: red">{{ status }}</span>
+                <!--<input type="file" name="picture1" onchange="changepic(this,'show')" style="position:absolute;top:53%;right:10%;width:200px" accept="image/*" id="id_picture1">-->
+                <button onclick="confirm_goods()" type="button" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:absolute;left: 26%;width: 100px;height: 35px;">提交审核</button>
+                <button type="submit" id="add_confirm" style="display: none;" ></button>
+                <button onclick="goods_cancel()" type="button" id="cancel" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:absolute;right: 40%;width: 60px;height: 35px;">取消</button>
+            </form>
+            <div style="height: 22px;width: 22.8%;background-color: #f4f5d3;position: absolute;bottom: 12%;"></div>
+        {% else %}
+            <h2 style="">商品信息</h2>
+            <img onclick="picture_upload()" id="show" src="{{ picture }}" width="200" height="200" style="position: absolute;top:17%;right: 10%;">
+            <div style="margin-bottom: 15px;padding-left: 15px;">
+                <h4 style="color: deepskyblue">Goods type</h4>
+                <p style="padding-left: 15px;width: 250px;">{{ goods.goods_type }}</p>
+            </div>
+            <div style="margin-bottom: 15px;padding-left: 15px;">
+                <h4 style="color: deepskyblue">Name</h4>
+                <p style="padding-left: 15px;width: 250px;">{{ goods.name }}</p>
+            </div>
+            <div style="margin-bottom: 15px;padding-left: 15px;">
+                <h4 style="color: deepskyblue">Price</h4>
+                <p style="padding-left: 15px;width: 250px;">{{ goods.price }}</p>
+            </div>
+            <div style="margin-bottom: 15px;padding-left: 15px;">
+                <h4 style="color: deepskyblue">Remain</h4>
+                <p style="padding-left: 15px;width: 250px;">{{ goods.remain }}</p>
+            </div>
+            <div style="margin-bottom: 15px;padding-left: 15px;">
+                <h4 style="color: deepskyblue">Instruction</h4>
+                <p style="padding-left: 15px;">{{ goods.instruction }}</p>
+            </div>
+            <div style="margin-bottom: 15px;padding-left: 15px;">
+                <h4 style="color: deepskyblue">Location</h4>
+                <p style="padding-left: 15px;">{{ goods.location }}</p>
+            </div>
+            <div class="col-md-12">
+                <button onclick="goods_cancel()" type="button" id="cancel" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:absolute;left: 40%;width: 60px;height: 35px;">返回</button>
+            </div>
+        {% endif %}
+
+        {% if goods.status == 3 %}
+            <div style="height: 200px;width: 200px;background: #000;opacity:0.4;position: absolute;top:17%;right: 10%;">
+            </div>
+            <b style="font-size: 25px;color: #B10000;position: absolute;top:17%;right: 10%;">已下架</b>
+        {% elif goods.status == 0 %}
+            <b style="font-size: 25px;color: red;position: absolute;top:12%;right: 20%;">待审核</b>
+        {% elif goods.status == 1 %}
+            <b style="font-size: 25px;color: red;position: absolute;top:12%;right: 20%;">已上架</b>
+        {% elif goods.status == 2 %}
+            <div style="height: 200px;width: 200px;background: #000;opacity:0.4;position: absolute;top:17%;right: 10%;">
+            </div>
+            <b style="font-size: 25px;color: #B10000;position: absolute;top:17%;right: 10%;">已拒绝</b>
+        {% endif %}
+    </div>
+    <input type="hidden" id="yy" value="{{ code|safe }}">
+{% endblock %}}

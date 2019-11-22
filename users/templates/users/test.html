@@ -1,0 +1,64 @@
+<html>
+{% load staticfiles %}
+<head>
+    <title>jQuery bootstrap-select可搜索多选下拉列表插件</title>
+    <script src="http://www.jq22.com/jquery/jquery-1.10.2.js"></script><script src="https://libs.baidu.com/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript" src="../static/JS/bootstrap-select.js"></script>
+    <link rel="stylesheet" type="text/css" href="../static/CSS/bootstrap-select.css">
+    <link href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+    <script src="http://libs.baidu.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <!--<script src="{% static 'js/jquery-3.2.1.js' %}"></script>
+    <link href="{% static 'bootstrap-3.3.7-dist/css/bootstrap.min.css' %}" >
+    <script src="{% static 'bootstrap-3.3.7-dist/js/bootstrap.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'CSS/bootstrap-select.css' %}">
+    <script type="text/javascript" src="{% static 'JS/bootstrap-select.js' %}"></script>-->
+
+    <script type="text/javascript">
+    $(window).on('load', function () {
+    $('.selectpicker').selectpicker({
+                'selectedText': 'cat'
+            });
+    // $('.selectpicker').selectpicker('hide');
+        });
+    </script>
+</head>
+<body style="">
+    <label for="id_select"></label>
+    <select id="id_select" class="selectpicker bla bla bli" multiple="" data-live-search="true" style="display: none;">
+        <option>cow</option>
+        <option>bull</option>
+        <option>ASD</option>
+        <option selected="">Bla</option>
+        <option>Ble</option>
+    </select>
+    <div class="btn-group bootstrap-select show-tick bla bli open">
+        <button type="button" class="btn dropdown-toggle selectpicker btn-default" data-toggle="dropdown" data-id="id_select" title="Bla">
+            <span class="filter-option pull-left">Bla</span>
+            &nbsp;
+            <span class="caret"></span>
+        </button>
+        <div class="dropdown-menu open" style="max-height: 400px; overflow: hidden; min-height: 92px;">
+            <div class="bootstrap-select-searchbox">
+                <input type="text" class="input-block-level form-control">
+            </div>
+            <ul class="dropdown-menu inner selectpicker" role="menu" style="max-height: 346px; overflow-y: auto; min-height: 80px;">
+                <li rel="0" class="">
+                    <a tabindex="0" class="" style=""><span class="text">cow</span><i class="glyphicon glyphicon-ok icon-ok check-mark"></i></a>
+                </li>
+                <li rel="1" class="">
+                    <a tabindex="0" class="" style=""><span class="text">bull</span><i class="glyphicon glyphicon-ok icon-ok check-mark"></i></a>
+                </li>
+                <li rel="2" class="">
+                    <a tabindex="0" class="" style=""><span class="text">ASD</span><i class="glyphicon glyphicon-ok icon-ok check-mark"></i></a>
+                </li>
+                <li rel="3" class="selected">
+                    <a tabindex="0" class="" style=""><span class="text">Bla</span><i class="glyphicon glyphicon-ok icon-ok check-mark"></i></a>
+                </li>
+                <li rel="4" class="">
+                    <a tabindex="0" class="" style=""><span class="text">Ble</span><i class="glyphicon glyphicon-ok icon-ok check-mark"></i></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

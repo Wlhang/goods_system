@@ -1,0 +1,206 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+
+{% block header %}
+    <link rel="stylesheet" href="/users/static/myPagination/myPagination.css" />
+    <script src="/users/static/myPagination/myPagination.js"></script>
+    <style type="text/css">
+        .sort{
+            color:#B10000;
+            background: #F1EDEC;
+            z-index: 10;
+        }
+    </style>
+    <script type="text/javascript">
+        //建立一個可存取到該file的url
+        function getObjectURL(file) {
+            var url = null ;
+            // 下面函数执行的效果是一样的，只是需要针对不同的浏览器执行不同的 js 函数而已
+            if (window.createObjectURL!=undefined) { // basic
+                url = window.createObjectURL(file) ;
+            }else if (window.webkitURL!=undefined) { // webkit or chrome
+                url = window.webkitURL.createObjectURL(file) ;
+            }else if (window.URL!=undefined) { // mozilla(firefox)
+                url = window.URL.createObjectURL(file) ;
+            }
+            return url ;
+        }
+        function active(obj) {
+            obj.classList.add("active");
+            obj.style.cursor = 'pointer'
+        }
+        function unactive(obj) {
+            obj.classList.remove("active");
+        };
+        function get_url(b,a) {
+            v = document.getElementById('s_t').value;
+            sort_cur = {{ sort|safe }};
+            key = document.getElementById('key').value;
+            var url = location.href.split('?')[0]+'?';
+            var status = document.getElementById('dropdownMenu1').innerText;
+            //alert(search_cur);
+            if(b==0){
+                if(sort_cur=='1' && a=='1'){
+                    v = v^1;
+                }
+                else if(sort_cur=='2' && a=='2'){
+                    v = v^2;
+                }
+                else if(sort_cur=='3' && a=='3'){
+                    v = v^4;
+                }
+                else if(sort_cur=='4' && a=='4'){
+                    v = v^8;
+                }
+                if(key != ""){
+                    url += "search=" + key + '&sort='+a+'&v='+v.toString()+'&status='+status;
+                }
+                else {
+                    url += 'sort=' + a + '&v=' + v.toString()+'&status='+status;
+                }
+            }
+            else if(b == 1){
+                if(key != ""){
+                    url += "search=" + key;
+                    url += '&sort='+sort_cur+'&v='+ v.toString()+'&Page='+ a+'&status='+status;
+                }
+                else{
+                    url += 'sort='+sort_cur+'&v='+ v.toString()+'&Page='+ a+'&status='+status;
+                }
+            }
+            else if(b==2){
+                search_cur = document.getElementById('id_search').value;
+                url += "search=" + search_cur;
+                url += '&sort='+sort_cur+'&v='+ v.toString();
+            }
+            else if(b==3){
+                search_cur = document.getElementById('id_search').value;
+                url += "status=" + a;
+                if(search_cur!=""){
+                    url += "&search=" + search_cur;
+                }
+                url += '&sort='+sort_cur+'&v='+ v.toString();
+            }
+            return url;
+        }
+        function s_click(obj,a){
+            //alert(v);
+            location.href=get_url(0,a);
+        }
+        window.onload=function () {
+            sort_cur = {{ sort|safe }};
+            sort_cur = "s_" + sort_cur;
+            document.getElementById(sort_cur).classList.add('sort');
+            new Page({
+                id: 'pagination',
+                pageTotal: {{ total_page }}, //必填,总页数
+                pageAmount: 24,  //每页多少条
+                dataTotal: {{ total_goods }}, //总共多少条数据
+                curPage:{{ page|safe }}, //初始页码,不填默认为1
+                pageSize: 5, //分页个数,不填默认为5
+                showPageTotalFlag:true, //是否显示数据统计,不填默认不显示
+                showSkipInputFlag:true, //是否支持跳转,不填默认不显示
+                getPage: function (page) {
+                    //获取当前页数
+                    console.log(page);
+                    location.href = get_url(1,page);
+
+                    {#document.getElementById("<%=currentpage.ClientID%>").value = page;#}
+                    {#document.getElementById("<%=award.ClientID%>").value = 0;#}
+                    {#document.getElementById("<%=refresh.ClientID%>").click();#}
+                },
+            })
+        };
+        function goods_search() {
+            location.href = get_url(2,-1);
+        }
+        function s_status(obj) {
+            {#var s = obj.innerText;#}
+            {#document.getElementById('dropdownMenu1').innerText = s;#}
+            location.href = get_url(3,obj.innerText);
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="container" style="margin-left: 30px;">
+        <div style="position: relative">
+            <form method="post" onkeydown="if(event.keyCode==13){goods_search();}">
+                    {% csrf_token %}
+                    <span style="font-size: 15px;position: absolute;top: 8.5%;left: 0;">{% bootstrap_form form2 %} </span>
+                    <input id="id_search" onclick="goods_search()" class="form-control" type="button"  style="color: dodgerblue;position: absolute;top: 25px;left: 20%;width: 60px" value="搜索">
+                    <input type="text" id="key" value="{{ key|default_if_none:"" }}" style="display: none;">
+            </form>
+        </div>
+        <div style="margin-top: 80px;">
+            <div class="col-md-5" style="padding: 0px;">
+                <table class="table-bordered table">
+                    <tr>
+                        <td id="s_1" onclick="s_click(this,1)" onmouseover="active(this)" onmouseout="unactive(this)">
+                            时间<span class="caret"></span>
+                        </td>
+                        <td id="s_2" onclick="s_click(this,2)" onmouseover="active(this)" onmouseout="unactive(this)">
+                            销量<span class="caret"></span>
+                        </td>
+                        <td id="s_3" onclick="s_click(this,3)" onmouseover="active(this)" onmouseout="unactive(this)">
+                            价格<span class="caret"></span>
+                        </td>
+                        <td id="s_4" onclick="s_click(this,4)" onmouseover="active(this)" onmouseout="unactive(this)">
+                            剩余<span class="caret"></span>
+                        </td>
+                    </tr>
+                </table>
+                <input id="s_t" type="hidden" value="{{ s_t }}">
+            </div>
+        <div class="col-md-5">
+
+        </div>
+        <div class="col-md-2">
+            <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style="width: 100px;">
+                {{ status_sort }}
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" style="min-width: 100px;">
+                <li onclick="s_status(this,1)"><a>全部</a></li>
+                <li onclick="s_status(this,2)"><a>已上架</a></li>
+                <li onclick="s_status(this,3)"><a>待审核</a></li>
+                <li role="separator" class="divider"></li>
+                <li onclick="s_status(this,4)"><a>已下架</a></li>
+                <li onclick="s_status(this,5)"><a>已拒绝</a></li>
+            </ul>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="container" style="margin-bottom: 20px;padding-bottom: 50px;position: relative;margin-left: 30px;">
+        {% if not goodses %}
+            <h2>暂无数据</h2>
+        {% endif %}
+        {% for goods in goodses %}
+            <div class="col-md-2" style="padding: 0px;margin-bottom: 18px">
+                <a href="./check_goods_detail/{{ goods.id }}"><img src="{{ goods.picture}}?{{ time }}" width="150" height="150" /></a>
+                <div style="width: 150px;display:block;color:red;font-size: 20px;position: relative">
+                    <strong>
+                        ¥{{ goods.price }}
+                        <span style="text-align: right;position: absolute;right: 0;bottom: 5px;font-size: 12px;color: darkgray">
+                            {% if sort == '2' %}
+                                销量:{{ goods.sales }}
+                            {% else %}
+                                {% if goods.remain <= 10 %}
+                                    <B style="color: red">剩余:{{ goods.remain }}</B>
+                                {% else %}
+                                    剩余:{{ goods.remain }}
+                                {% endif %}
+                            {% endif %}
+                        </span>
+                    </strong>
+                </div>
+                <span style="font-size: 13px;width: 150px;text-align: center;display:block;word-wrap:break-word;"><strong>{{ goods.name|truncatechars_html:20 }}</strong></span>
+            </div>
+        {% endfor %}
+        <div id="pagination" class="pagination" onsubmit="getpage()" onclick="getpage()" style="margin-bottom:0px;position: absolute;left: 18%;bottom: 0px;margin-top: 20px;"></div>
+    </div>
+
+{% endblock %}

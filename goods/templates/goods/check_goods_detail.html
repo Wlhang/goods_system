@@ -1,0 +1,125 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+
+{% block header %}
+    <script type="text/javascript">
+        function goods_cancel() {
+            location.href  = '{{ url|safe }}'
+        }
+        function check_goods(a) {
+            var s_id = document.URL.split('/')[5];
+            var s = ['','上架','拒绝','下架'];
+            var r=confirm("确认"+s[a]+"这个商品吗？");
+            if (r==true) {
+                $.ajax({
+                    url: '/goods/check_goods_operate?goods_id=' + s_id + '&operate=' + a.toString(),
+                    type: 'GET',
+                    success: function (returnValue) {
+                        if (returnValue == 1) {
+                            alert('修改成功！');
+                            window.location = '{{ url|safe }}';
+                        } else if (returnValue == 2) {
+                            alert("非法访问！");
+                            // debugger;
+                            window.opener = null;
+                            window.open('', '_self');
+                            window.location.href = "about:blank";
+                            window.close();//当断点执行到这里时会显示“Scripts may close only the windows that were opened by it.”所以要加上面“about:blank”页面才可以成功关闭
+                        } else {
+                            alert("操作失败！");
+                        }
+                    },
+                    error: function (returnValue) {
+                        alert("发送失败！");
+                    }
+                })
+            }
+        }
+        function delete_confirm()
+        {
+            var r=confirm("确认删除这个商品吗？");
+            if (r==true)
+            {
+                var url = document.URL;
+                var s_id = url.split('/')[5];
+                {#alert(url);#}
+                $.ajax({
+                    url: '/goods/delete_goods?good_id='+s_id,
+                    type: 'GET',
+                    success:function(returnValue){
+                        if(returnValue == 1){
+                            alert('删除成功！');
+                            window.location='{{ url|safe }}';
+                        }
+                        else if(returnValue==2){
+                            alert("你不是这个商品的拥有者！");
+                            // debugger;
+                            window.opener=null;
+                            window.open('','_self');
+                            window.location.href="about:blank";
+                            window.close();//当断点执行到这里时会显示“Scripts may close only the windows that were opened by it.”所以要加上面“about:blank”页面才可以成功关闭
+                        }
+                        else{
+                            alert("删除失败！");
+                        }
+                    },
+                    error: function (returnValue) {
+                        alert("发送失败！");
+                    }
+                })
+            }
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="container" style="width: 50%;height:600px;position: relative">
+{#        <button id="delete_goods" onclick="delete_confirm()" class="btn btn-primary" type="button" style="position: absolute;right: 1%;top: 3%;background-color: red;border-color: red">删除商品</button>#}
+        <h2 style="">商品信息</h2>
+        <img onclick="picture_upload()" id="show" src="{{ picture }}" width="200" height="200" style="position: absolute;top:17%;right: 10%;">
+        <div style="margin-bottom: 15px;padding-left: 15px;">
+            <h4 style="color: deepskyblue">Goods type</h4>
+            <p style="padding-left: 15px;width: 250px;">{{ goods.goods_type }}</p>
+        </div>
+        <div style="margin-bottom: 15px;padding-left: 15px;">
+            <h4 style="color: deepskyblue">Name</h4>
+            <p style="padding-left: 15px;width: 250px;">{{ goods.name }}</p>
+        </div>
+        <div style="margin-bottom: 15px;padding-left: 15px;">
+            <h4 style="color: deepskyblue">Price</h4>
+            <p style="padding-left: 15px;width: 250px;">{{ goods.price }}</p>
+        </div>
+        <div style="margin-bottom: 15px;padding-left: 15px;">
+            <h4 style="color: deepskyblue">Remain</h4>
+            <p style="padding-left: 15px;width: 250px;">{{ goods.remain }}</p>
+        </div>
+        <div style="margin-bottom: 15px;padding-left: 15px;">
+            <h4 style="color: deepskyblue">Instruction</h4>
+            <p style="padding-left: 15px;">{{ goods.instruction }}</p>
+        </div>
+        <div style="margin-bottom: 15px;padding-left: 15px;">
+            <h4 style="color: deepskyblue">Location</h4>
+            <p style="padding-left: 15px;">{{ goods.location }}</p>
+        </div>
+        {% if goods.status == 3 %}
+            <div style="height: 200px;width: 200px;background: #000;opacity:0.4;position: absolute;top:17%;right: 10%;">
+            </div>
+            <b style="font-size: 25px;color: #B10000;position: absolute;top:17%;right: 10%;">已下架</b>
+        {% elif goods.status == 0 %}
+            <b style="font-size: 25px;color: red;position: absolute;top:12%;right: 20%;">待审核</b>
+            <div style="height: 50px;">
+                <button onclick="check_goods(1)" type="button" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:absolute;left: 30.5%;width: 60px;height: 35px;">通过</button>
+                <button onclick="check_goods(2)" type="button" id="cancel" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:absolute;right: 37%;width: 60px;height: 35px;">拒绝</button>
+            </div>
+        {% elif goods.status == 1 %}
+            <b style="font-size: 25px;color: red;position: absolute;top:12%;right: 20%;">已上架</b>
+            <button onclick="check_goods(3)" type="button" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:absolute;left: 26%;width: 60px;height: 35px;">下架</button>
+        {% elif goods.status == 2 %}
+            <div style="height: 200px;width: 200px;background: #000;opacity:0.4;position: absolute;top:17%;right: 10%;">
+            </div>
+            <b style="font-size: 25px;color: #B10000;position: absolute;top:17%;right: 10%;">已拒绝</b>
+        {% endif %}
+        <button onclick="goods_cancel()" type="button" id="cancel" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:relative;left: 41%;width: 60px;height: 35px;">返回</button>
+    </div>
+    <input type="hidden" id="yy" value="{{ code|safe }}">
+{% endblock %}}

@@ -1,0 +1,120 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+
+{% block header %}
+    <link rel="stylesheet" href="/users/static/myPagination/myPagination.css" />
+    <script src="/users/static/myPagination/myPagination.js"></script>
+    <script type="text/javascript">
+        function delete_search(obj) {
+            r = confirm('确认删除该订单吗？');
+            if(r==true){
+                location.href = '/goods/delete_shops_'+obj;
+            }
+        }
+        window.onload=function () {
+            new Page({
+                id: 'pagination',
+                pageTotal: {{ orders.paginator.num_pages }}, //必填,总页数
+                pageAmount: 8,  //每页多少条
+                dataTotal: {{ orders.paginator.count }}, //总共多少条数据
+                curPage:{{ orders.number|safe }}, //初始页码,不填默认为1
+                pageSize: 5, //分页个数,不填默认为5
+                showPageTotalFlag:true, //是否显示数据统计,不填默认不显示
+                showSkipInputFlag:true, //是否支持跳转,不填默认不显示
+                getPage: function (page) {
+                    //获取当前页数
+                    {#console.log(page);#}
+                    document.getElementById('page').value = page;
+                    document.getElementById('search').click();
+                    {#document.getElementById("<%=currentpage.ClientID%>").value = page;#}
+                    {#document.getElementById("<%=award.ClientID%>").value = 0;#}
+                    {#document.getElementById("<%=refresh.ClientID%>").click();#}
+                },
+            })
+        };
+        function search_d() {
+            document.getElementById('page').value = '';
+            document.getElementById('search').click();
+        }
+        function confirm_order(obj) {
+            $.ajax({
+                 type:"GET",
+                 url:"/goods/confirm_order/"+obj,
+                 success:function(returnValue){
+                    if(returnValue==1){
+                        alert('确认成功！');
+                        location.href='/goods/Merchant_orders';
+                    }
+                    else{
+                        alert('确认失败！');
+                    }
+                 },
+                 error: function (returnValue) {
+                    alert("提交失败！");
+                 }
+             })
+        }
+    </script>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <form id="form1" method="post" action="/goods/Merchant_orders">
+            {% csrf_token %}
+            <table border="0" style="position: relative;left: 37.5%;">
+                <tr>
+                    <td style="padding-right: 10px"><label>搜索商品id</label><input name="product_id" class="form-control" width="100px" value="{{ product__id__contains }}"></td>
+                    <td style="padding-right: 10px"><label>搜索商品名称</label><input name="product_name" class="form-control" width="100px" value="{{ product__name__contains }}"></td>
+                    <td style="padding-right: 10px"><label>搜索订单id</label><input name="order_id" class="form-control" width="100px" value="{{ order__id__contains }}"></td>
+                    <td valign="bottom"><button type="button" onclick="search_d()" class="btn btn-primary">搜索</button></td>
+                    <button id="search" type="submit" style="display: none;">搜索</button>
+                    <input id="page" type="hidden" name="page" value="{{ page }}">
+                </tr>
+            </table>
+        </form>
+        <br>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel panel-body" style="background: #ffffff99;">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <td width=10% align=center>记录id</td>
+                                <td width=10% align=center>商品id</td>
+                                <td width=10% align=center>商品图片</td>
+                                <td width=20% align=center>商品名称</td>
+                                <td width=10% align=center>商品价格</td>
+                                <td width=10% align=center>购买数量</td>
+                                <td width=10% align=center>总价</td>
+                                <td width=10% align=center>订单id</td>
+                                <td></td>
+                            </tr>
+                        </thead>
+                        {% for order in orders %}
+                            <div class="listgroup">
+                                <div class="listgroup-item">
+                                    <tr>
+                                        <td align="center">{{order.id}}</td>
+                                        <td align="center">{{order.product_id}}</td>
+                                        <td align="center"><img width="80px" height="80" src="/media/picture/{{ order.product.store_id_id }}/{{ order.product_id }}.jpg"></td>
+                                        <td align="center">{{order.name}}</td>
+                                        <td align="center">{{order.price}}</td>
+                                        <td align="center">{{order.quantity}}</td>
+                                        <td align="center">{{ order.total }}</td>
+                                        <td align="center">{{order.order_id}}</td>
+                                        {% if order.status == False %}
+                                            <td align=center><button class="btn btn-warning"><a onclick="confirm_order({{ order.id }})">确认订单</a></button> </td>
+                                        {% else %}
+                                            <td align=center><button disabled class="btn btn-warning">已确认</button> </td>
+                                        {% endif %}
+                                    </tr>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="pagination" class="pagination" onsubmit="getpage()" onclick="getpage()" style="position: relative;left: 25%;bottom: 5px;"></div>
+        </div>
+    </div>
+{% endblock %}

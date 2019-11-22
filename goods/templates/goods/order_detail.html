@@ -1,0 +1,60 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+{% block title %} 订单详情{% endblock %}
+{% block content %}
+<div class="container">
+{% for message in messages %}
+    <div class="alert alert-{{message.tags}}">{{message}}</div>
+{% endfor %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default" style="background: #ffffff99;">
+                <div class="pannel-heading" align=center>
+                    <h3>欢迎光临</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel panel-info" style="background: #ffffff99;">
+                <div class="panel panel-heading">
+                <h4>订单详情</h4>
+            </div>
+            <div class="panel panel-body" style="background: #ffffff99;">
+                {% for order in orders %}
+                {% if forloop.first %}
+                <table border="1">
+                    <tr>
+                        <td width=300 align=center>商品名称</td>
+                        <td width=100 align=center>购买数量</td>
+                        <td width=100 align=center>商品价格</td>
+
+                    </tr>
+                {% endif %}
+                        <div class="listgroup">
+                            <div class="listgroup-item">
+                                <tr>
+                                    <td align=center>{{order.name}}</td>
+                                    <td align=center>{{order.quantity}}</td>
+                                    <td align=center>{{order.price}}</td>
+                                </tr>
+                            </div>
+                        </div>
+                {% if forloop.last %}
+
+                </table>
+                {% endif %}
+                {% endfor %}
+                </div>
+            <button class="btn btn-warning"><a href='{% url "goods:myorders" %}'>返回我的订单</a></button>
+            <button class="btn btn-warning"><a href='{% url "goods:consumer" %}'>返回首页</a></button>
+           <br>
+            <br>
+             <div class="panel panel-footer">
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

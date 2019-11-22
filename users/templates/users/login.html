@@ -1,0 +1,43 @@
+
+<style>
+        .login-box {
+            width: 600px;
+            height: 400px;
+            background: #ffffff99;
+            overflow: hidden;
+            position: absolute;
+            left: 50%;
+            top: 30%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 24px;
+            border-radius: 8px;
+        }
+
+        .form-control {
+            width: 90% !important;
+            margin: 0 5%;
+        }
+
+</style>
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+
+
+
+{% block content %}
+    <div class="login-box">
+        <h2  class="page-header">Log in you account.</h2>
+        <form method="post" action="{% url 'users:login' %}" class="form">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            <span style="color: red">{{ status }}</span><br>
+            {% buttons %}
+                <button name="submit" class="btn btn-primary" style="font-size: 15px;margin-bottom: 10px;">log in</button><br>
+                <a href="/user/fdpassword" style="font-size: 15px; "><em><U>forget password</U></em></a>
+            {% endbuttons %}
+        </form>
+    </div>
+
+    {{ result }}
+{% endblock content %}

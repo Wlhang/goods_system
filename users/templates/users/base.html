@@ -1,0 +1,231 @@
+{% load bootstrap3 %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width">
+        <title>爱买不买</title>
+        {% bootstrap_css %}
+        <script src="/users/static/js/jquery-3.3.1.min.js"></script>
+        <script src="/users/static/js/bootstrap.min.js"></script>
+        <!--{% bootstrap_javascript %}-->
+        <style>
+            .test{border: 2px solid #DD1; background:#EE1;}
+            .clear{padding: 0; margin: 0}
+            a {cursor: pointer}
+            .dropdown1:hover,.nav-container-down {
+                display: block;
+            }
+ 	        body {
+                background: url("/users/static/images/1.jpg") no-repeat;
+                background-size: 100%;
+                background-color: #f8f5d4;;
+            }
+        </style>
+        <script type="text/javascript">
+        var a = 5;
+        function logoff() {
+            document.getElementById('window').style.display = 'block';
+            document.getElementById('cover').style.display = 'block';
+            a = 5;
+            document.getElementById('cover_confirm').style.display = 'block';
+            CountTime();
+        }
+        function cancel() {
+            document.getElementById('window').style.display = 'none';
+            document.getElementById('cover').style.display = 'none';
+        }
+        function CountTime(){
+            var s = document.getElementById("confirm_off");
+            s.innerText = "确认（"+a.toString()+"）";
+            a = a - 1;
+            if(a<0){
+
+                s.innerText = "确认";
+                document.getElementById('cover_confirm').style.display = 'none';
+            }
+            else if(document.getElementById('window').style.display != 'none'){
+                setTimeout(CountTime,1000);
+            }
+            else{
+                a = 5;
+            }
+         }
+         function d_block() {
+             document.getElementById('nav_d').style.display = 'block';
+         }
+         function d_cancel() {
+             document.getElementById('nav_d').style.display = 'none';
+         }
+         function s_hot() {
+             $.ajax({
+                 type:"GET",
+                 url:"/goods/hot_search",
+                 success:function(returnValue){
+                    var  s = returnValue.split(' ')
+                    document.getElementById('hot_1').innerText = s[0];
+                    document.getElementById('hot_1').href = '/goods/consumer?search='+s[0];
+                    document.getElementById('hot_2').innerText = s[1];
+                    document.getElementById('hot_2').href = '/goods/consumer?search='+s[1];
+                    document.getElementById('hot_3').innerText = s[2];
+                    document.getElementById('hot_3').href = '/goods/consumer?search='+s[2];
+                 },
+                 error: function (returnValue) {
+                    {#alert("提交失败！");#}
+                 }
+             })
+         }
+        </script>
+    </head>
+
+    <body>
+        <!-- Static navbar -->
+        <nav class="navbar" style="height: 55px;border-radius: 0px;background-color: #f8f5d4;border-top: 0;border-left: 0;border-right: 0;border-color: white;">
+            <div class="container" style="height: 40px;">
+
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed"
+                            data-toggle="collapse" data-target="#navbar"
+                            aria-expanded="false" aria-controls="navbar">
+                    </button>
+                    <em><a class="navbar-brand" style="font-size: 30px;" href="{% url 'users:login' %}">
+                        爱买不买</a></em>
+                    {% if request.session.identity == 3 %}
+                        <div onmouseleave="click()" class="navbar-brand dropdown" style="margin-left: 40px;font-size: 20px;margin-bottom: 0">
+                            <a onmouseover="click()" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 20px;text-decoration: none;">
+                                Check
+                                <b class="caret"></b>
+                            </a>
+                            <ul class="dropdown-menu" style="min-width: 90px;margin-top: -2px;">
+                                <li><a href="{% url 'goods:check_goods' %}">审核商品</a></li>
+                                <li class="divider"></li>
+                                <li><a href="{% url 'goods:manage_shops' %}">管理商铺</a></li>
+                                <li class="divider"></li>
+                                <li><a href="{% url 'goods:manage_search' %}">管理搜索记录</a></li>
+                                <li class="divider"></li>
+                                <li><a href="{% url 'goods:manage_order' %}">管理订单</a></li>
+                            </ul>
+                        </div>
+                    {% endif %}
+                    {% if request.session.identity != 2 %}
+                        <div onmouseleave="click()" class="navbar-brand dropdown" style="margin-left: 40px;">
+                            <a onclick="s_hot()" onmouseover="click()" class="dropdown-toggle" data-toggle="dropdown" style="font-size: 20px;text-decoration: none;">
+                                Shopping
+                                <b class="caret"></b>
+                            </a>
+                            <div class="dropdown-menu" style="min-width: 500px;margin-top: -2px;background: #f8f5d4;font-size: 20px;margin-left: 10px;">
+                                <table class="table">
+                                    <tbody>
+                                        <tr class="" width="500px">
+                                            <td scope="row" width="20%">类型</td>
+                                            <td width="20%"><a href="/goods/consumer">全部</a></td>
+                                            <td width="20%"><a href="/goods/consumer/男装">男装</a></td>
+                                            <td width="20%"><a href="/goods/consumer/女装">女装</a></td><td></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:red">热搜</td>
+                                            <td><a id="hot_1" href="/goods/consumer?search=秋季">秋季</a></td>
+                                            <td><a id="hot_2" href="/goods/consumer?search=韩都衣舍">韩都衣舍</a></td>
+                                            <td><a id="hot_3" href="/goods/consumer?search=男装">男装</a></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a class="navbar-brand" style="margin-left: 40px;font-size: 20px;" href="{% url 'goods:shops' %}">
+                        Shops</a>
+                    {% endif %}
+                    {% if request.session.identity == 2 %}
+                        <a class="navbar-brand" style="margin-left: 37px;font-size: 20px;" href="{% url 'goods:Merchant_orders' %}">
+                        Orders</a>
+                    {% endif %}
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-right " style="font-size: 15px;">
+                        {% if user.is_authenticated %}
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                    Hello,{{ user.username }}.
+                                <b class="caret"></b>
+                                </a>
+                                <ul class="dropdown-menu" style="min-width: 100px;">
+                                    <li><a href="{% url 'users:modify' %}">修改个人信息</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="{% url 'users:m_pwd' %}">修改密码</a></li>
+                                    <li class="divider"></li>
+                                    <li><a onclick="logoff()">注销账户</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="{% url 'users:logout' %}">log out</a></li>
+                        {% else %}
+                            <li><a href="{% url 'users:register' %}">register</a></li>
+                            <li><a href="{% url 'users:login' %}">log in</a></li>
+                        {% endif %}
+                    </ul>
+                </div><!--/.nav-collapse -->
+                
+            </div>
+
+        </nav>
+{#        <div onmouseleave="d_cancel()" onmouseover="d_block()" class="nav-container-down" style=" position: relative;top: -35px;background-color: salmon">#}
+{#            <div id="nav_d" style="display: none;" >#}
+{#                <div class="sub-container" style="margin-left: 179.6px;">#}
+{#                  <dl class="header-nav-dl" style="width: 130px;">#}
+{#                    <dt>#}
+{#                      <a href="#" target="_blank">#}
+{#                         品牌#}
+{#                      </a>#}
+{#                    </dt>#}
+{#                  </dl>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+        <div class="container">
+
+            <div>
+                {% block header %}{% endblock header %}
+            </div>
+            <div>
+                {% if request.session.identity == 3 %}
+                    <div id="index_goods" style="width: auto;position: fixed;left: 20px;top: 50px;font-size: 25px;z-index: 3">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>审核列表</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="{{ active1 }}"><a href="/goods/check_goods" style="text-decoration: none;">审核商品</a></td>
+                                </tr>
+                                <tr>
+                                    <td class="{{ active2 }}"><a href="/goods/manage_shops" style="text-decoration: none;">管理商铺</a></td>
+                                </tr>
+                                <tr>
+                                    <td class="{{ active3 }}"><a href="/goods/manage_search" style="text-decoration: none;">管理搜索记录</a></td>
+                                </tr>
+                                <tr>
+                                    <td class="{{ active4 }}"><a href="/goods/manage_order" style="text-decoration: none;">管理订单</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+                {% block content %}
+
+                {% endblock content %}
+            </div>
+        </div><!--/container-->
+    <!--遮挡层-->
+    <div onclick="cancel()" id="cover" style="opacity:0.1;background-color:#000;width:100%;height:100%;position: fixed;left:0;top:0;display:none;overflow: hidden;"></div>
+    <!--弹出层，-->
+    <div id="window" style=" width:600px;z-index:1001;height:200px;
+    position: fixed; display:none;top:5%; left:30%;background-color: ghostwhite">
+        <p style="position: relative;top:40px;font-size: 30px">此操作不可逆，您确认要注销您的账户吗?</p>
+        <a href="/user/logoff" style="position: absolute;right:40px;bottom: 20px"><button id="confirm_off" class="btn btn-primary">确认(5)</button></a>
+        <div id="cover_confirm" style="height: 50px;width:100px;position: absolute;right: 35px;bottom: 15px;"></div>
+    </div>
+    </body>
+</html>

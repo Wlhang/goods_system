@@ -1,0 +1,89 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+{% block title %} 付款{% endblock %}
+
+{% block header %}
+    <script type="text/javascript">
+        function pay(obj) {
+            $.ajax({
+                 type:"GET",
+                 url:"/goods/paymaney/"+obj,
+                 success:function(returnValue){
+                    if(returnValue==1){
+                        alert('支付成功！');
+                        location.href='/goods/myorders';
+                    }
+                    else{
+                        alert('支付失败！');
+                    }
+                 },
+                 error: function (returnValue) {
+                    alert("提交失败！");
+                 }
+             })
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+{% for message in messages %}
+    <div class="alert alert-{{message.tags}}">{{message}}</div>
+{% endfor %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default"style="background: #ffffff99;">
+                <div class="pannel-heading" align=center>
+                    <h3>欢迎光临</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel panel-info" style="background: #ffffff99;">
+                <div class="panel panel-heading">
+                <h4>付款</h4>
+            </div>
+            <div class="panel panel-body" style="background: #ffffff99;"    >
+                {% for order in orders %}
+                {% if forloop.first %}
+                <table border="1">
+                    <tr>
+                        <td width=300 align=center>商品名称</td>
+                        <td width=100 align=center>购买数量</td>
+                        <td width=100 align=center>商品价格</td>
+
+                    </tr>
+                {% endif %}
+                        <div class="listgroup">
+                            <div class="listgroup-item">
+                                <tr>
+                                    <td align=center>{{order.name}}</td>
+                                    <td align=center>{{order.quantity}}</td>
+                                    <td align=center>{{order.price}}</td>
+                                </tr>
+                            </div>
+                        </div>
+                {% if forloop.last %}
+
+                </table>
+                {% endif %}
+                {% endfor %}
+                </div>
+
+                            总计：{{order1.totalprice}}元
+                <br>
+                 <br>
+                <button class="btn btn-warning"><a onclick="pay({{ order1.id }})">立即购买</a></button>
+            <button class="btn btn-warning"><a href='{% url "goods:myorders" %}'>返回我的订单</a></button>
+            <button class="btn btn-warning"><a href='{% url "goods:consumer" %}'>返回首页</a></button>
+           <br>
+            <br>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

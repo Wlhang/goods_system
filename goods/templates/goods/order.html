@@ -1,0 +1,72 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+{% block title %} 查看购物车{% endblock %}
+{% block content %}
+<div class="container">
+{% for message in messages %}
+    <div class="alert alert-{{message.tags}}">{{message}}</div>
+{% endfor %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default" style="background: #ffffff99;">
+                <div class="pannel-heading" align=center>
+                    <h3>欢迎光临</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+     <div class="row">
+        <div class="col-sm-12">
+
+
+
+            <div class="panel panel-body" style="background: #ffffff99;">
+                  <h4>新订单</h4>
+                {% for item in cart %}
+                {% if forloop.first %}
+                <table border="1">
+                    <tr>
+                        <td width=300 align=center>产品名称</td>
+                        <td width=100 align=center>单价</td>
+                        <td width=100 align=center>数量</td>
+                        <td width=100 align=center>小计</td>
+
+                    </tr>
+                {% endif %}
+                        <div class="listgroup">
+                            <div class="listgroup-item">
+                                <tr>
+                                    <td>{{item.product.name}}</td>
+                                    <td align=center>{{item.product.price}}</td>
+                                    <td align=center>{{item.quantity}}</td>
+                                    <td align=center>{{item.total_price}}</td>
+                                </tr>
+                            </div>
+                        </div>
+                {% if forloop.last %}
+
+                </table>
+                {% endif %}
+                {% endfor %}
+
+           <br>
+
+                            总计：{{cart.summary}}元
+                 <form  method="POST">
+                     {% csrf_token %}
+                     <table>
+                         {{form.as_table}}
+                     </table>
+                     <input type="submit" value="下订单">
+                 </form>
+            </div>
+            <br>
+            <br>
+             <button class="btn btn-warning"><a href='{% url "goods:shoppingcar" %}'>回购物车</a></button>
+            <button class="btn btn-warning"><a href='{% url "goods:consumer" %}'>回首页</a></button>
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}

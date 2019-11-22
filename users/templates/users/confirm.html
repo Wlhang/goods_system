@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册确认</title>
+    <script type="text/javascript">
+        var a = 5;
+         function CountTime(){
+            var s = document.getElementById("time");
+            s.innerText = a.toString();
+            a = a - 1;
+            if(a<0){
+
+                window.location.href='/user/{{ la|safe }}';
+            }
+            setTimeout(CountTime,1000);
+         }
+         window.onload = function(){
+           CountTime();
+        };
+    </script>
+
+</head>
+<body>
+    <h2 style="margin-left: 100px;">{{ message }}<span id="time" style="color:red;size:40px"></span> s.<a href="{{ la|safe }}" style="font-size: 15px;"> Or click here</a></h2>
+
+
+</body>
+</html>

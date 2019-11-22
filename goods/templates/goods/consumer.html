@@ -1,0 +1,211 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+
+{% block header %}
+    <link rel="stylesheet" href="/users/static/myPagination/myPagination.css" />
+    <script src="/users/static/myPagination/myPagination.js"></script>
+    <style type="text/css">
+        .sort{
+            color:#B10000;
+            background: #F1EDEC;
+            z-index: 10;
+        }
+    </style>
+    <script type="text/javascript">
+        function active(obj) {
+            obj.classList.add("active");
+            obj.style.cursor = 'pointer'
+        }
+        function unactive(obj) {
+            obj.classList.remove("active");
+        }
+        function get_url(b,a) {
+            v = document.getElementById('s_t').value;
+            sort_cur = {{ s|safe }};
+            key = document.getElementById('key').value;
+            var url = location.href.split('?')[0];
+            url = url.split('/')[0] +'?';
+            //alert(search_cur);
+            if(b==0){
+                if(sort_cur=='1' && a=='1'){
+                    v = v^1;
+                }
+                else if(sort_cur=='2' && a=='2'){
+                    v = v^2;
+                }
+                else if(sort_cur=='3' && a=='3'){
+                    v = v^4;
+                }
+                else if(sort_cur=='4' && a=='4'){
+                    v = v^8;
+                }
+                if(key != ""){
+                    url += "search=" + key + '&sort='+a+'&v='+v.toString();
+                }
+                else {
+                    url += 'sort=' + a + '&v=' + v.toString();
+                }
+            }
+            else if(b == 1){
+                if(key != ""){
+                    url += "search=" + key;
+                    url += '&sort='+sort_cur+'&v='+ v.toString()+'&Page='+ a;
+                }
+                else{
+                    url += 'sort='+sort_cur+'&v='+ v.toString()+'&Page='+ a;
+                }
+            }
+            else if(b==2){
+                search_cur = document.getElementById('id_search').value;
+                url += "search=" + search_cur;
+                url += '&sort='+sort_cur+'&v='+ v.toString();
+            }
+            else if(b==3){
+                search_cur = document.getElementById('id_search').value;
+                url += "status=" + a;
+                if(search_cur!=""){
+                    url += "&search=" + search_cur;
+                }
+                url += '&sort='+sort_cur+'&v='+ v.toString();
+            }
+            return url;
+        }
+        function s_click(obj,a){
+            //alert(v);
+            location.href=get_url(0,a);
+        }
+        window.onload=function () {
+            sort_cur = {{ s|safe }};
+            sort_cur = "s_" + sort_cur;
+            document.getElementById(sort_cur).classList.add('sort');
+            new Page({
+                id: 'pagination',
+                pageTotal: {{ products.paginator.num_pages }}, //必填,总页数
+                pageAmount: 12,  //每页多少条
+                dataTotal: {{ products.paginator.count }}, //总共多少条数据
+                curPage:{{ products.number|safe }}, //初始页码,不填默认为1
+                pageSize: 5, //分页个数,不填默认为5
+                showPageTotalFlag:true, //是否显示数据统计,不填默认不显示
+                showSkipInputFlag:true, //是否支持跳转,不填默认不显示
+                getPage: function (page) {
+                    //获取当前页数
+                    console.log(page);
+                    location.href = get_url(1,page);
+
+                    {#document.getElementById("<%=currentpage.ClientID%>").value = page;#}
+                    {#document.getElementById("<%=award.ClientID%>").value = 0;#}
+                    {#document.getElementById("<%=refresh.ClientID%>").click();#}
+                },
+            })
+        };
+        function goods_search() {
+            location.href = get_url(2,-1);
+        }
+        function s_status(obj) {
+            {#var s = obj.innerText;#}
+            {#document.getElementById('dropdownMenu1').innerText = s;#}
+            location.href = get_url(3,obj.innerText);
+        }
+        function add_item(obj)
+        {
+
+            $.ajax({
+                url: '/goods/additem/'+obj+'/1',
+                type: 'GET',
+                success:function(returnValue){
+                    if(returnValue == 1){
+                        document.getElementById('success').style.display = 'block';
+                        setTimeout("document.getElementById('success').style.display = 'none'",1000);
+                    }
+                    else{
+                        alert("添加失败，请稍后再试!");
+                    }
+                },
+                error: function (returnValue) {
+                    alert("添加失败！");
+                }
+            })
+        }
+    </script>
+{% endblock %}
+
+{% block title %} 商品{% endblock %}
+{% block content %}
+
+    <div class = 'row' style="height: 50px;width: 100%;position: relative;">
+        <button class='btn btn-info' style="position: absolute;right: 1%;"><a href='{% url "goods:shoppingcar"%}'>我的购物车</a></button>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+        <button class='btn btn-info' style="position: absolute;right: 11%;"><a href='{% url "goods:myorders"%}'>我的订单</a></button>
+    </div>
+    <div class="col-md-12" style="padding: 0px;margin-top: 18px;position: relative;z-index: 3">
+        <table class="table-bordered table" style="width: 40%;background: #ffffff99;">
+            <tr>
+                <td id="s_1" onclick="s_click(this,1)" onmouseover="active(this)" onmouseout="unactive(this)">
+                    日期<span class="caret"></span>
+                </td>
+                <td id="s_2" onclick="s_click(this,2)" onmouseover="active(this)" onmouseout="unactive(this)">
+                    销量<span class="caret"></span>
+                </td>
+                <td id="s_3" onclick="s_click(this,3)" onmouseover="active(this)" onmouseout="unactive(this)">
+                    价格<span class="caret"></span>
+                </td>
+                <td id="s_4" onclick="s_click(this,4)" onmouseover="active(this)" onmouseout="unactive(this)">
+                    剩余<span class="caret"></span>
+                </td>
+            </tr>
+        </table>
+        <input id="s_t" type="hidden" value="{{ s_t }}">
+        <form method="post" onkeydown="if(event.keyCode==13){goods_search();}">
+                {% csrf_token %}
+                <span style="font-size: 15px;position: absolute;top: -20px;right: 8.5%;">{% bootstrap_form form2 %} </span>
+                <input id="id_search" onclick="goods_search()" class="form-control" type="button"  style="color: dodgerblue;position: absolute;top: 10%;right: 2.5%;width: 60px" value="搜索">
+                <input type="text" id="key" value="{{ key|default_if_none:"" }}" style="display: none;">
+        </form>
+    </div>
+
+    <div style="padding-bottom: 50px;position: relative;">
+    {% for product in products %}
+    {% cycle '<div class="row">' '' '' '' %}
+        <div class="col-xs-3 col-sm-3 col-md-3">
+            <div class="thumbnail" style="background: #ffffff99;">
+                <a href='{% url "goods:c_goods_detail" product.id %}' target="_blank"><img src="{{ product.picture}}?{{ time }}" width="150" height="150" /></a>
+                <div class="caption">
+                    <h4>{{product.name|truncatechars_html:25}}</h4>
+                    <div style="width: 200px;display:block;color:red;font-size: 20px;position: relative">
+                        <strong>
+                            ¥{{ product.price }}
+                            <span style="position: absolute;right: -25px;bottom: 5px;font-size: 12px;color: darkgray">
+                                 销量:{{ product.sales }}&nbsp;&nbsp;&nbsp;
+                                {% if product.remain <= 10 %}
+                                    <B style="color: red">  库存:{{ product.remain }}</B>
+                                {% else %}
+                                    库存:{{ product.remain }}
+                                {% endif %}
+                            </span>
+                        </strong>
+                    </div>
+                    {% if product.remain == 0 %}
+                    <button class="btn btn-info" disabled="disabled">放入购物车</button> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+                    <button class="btn btn-primary" disabled="disabled">立即购买</button>
+                    {% else %}
+                    <button class="btn btn-info"><a onclick="add_item({{ product.id }})">放入购物车</a></button> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+                    <button class="btn btn-info"> <a href='{% url "goods:buyorder" product.id 1 %}'>立即购买</a></button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% cycle '' '' '' '</div>' %}
+    {% empty %}
+        <div class="row">
+            <div class="col-sm-12" align="center">
+                <h3>此分类没有任何产品</h3>
+            </div>
+        </div>
+    {% endfor %}
+    <div id="pagination" class="pagination" onsubmit="getpage()" onclick="getpage()" style="position: absolute;left: 18%;bottom: 0px;"></div>
+    </div>
+    <div id="success" class="alert alert-success" align="center" role="alert" style="width: auto;position: fixed;left: 45%;top: 10%;display: none;font-size: medium;">
+        <img src="/media/picture/success.png" width="20px" height="20px">
+        <b>添加成功</b>
+    </div>
+
+{%endblock%}

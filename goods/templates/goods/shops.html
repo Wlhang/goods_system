@@ -1,0 +1,107 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+{% block header %}
+    <script type="text/javascript">
+        function create_shop() {
+            document.getElementById('s_cover').style.display = 'block';
+            document.getElementById('create_shop').style.display = 'block';
+        }
+        function c_cancel() {
+            document.getElementById('s_cover').style.display = 'none';
+            document.getElementById('create_shop').style.display = 'none';
+        }
+        $(document).ready(function()
+        {
+            $('#form1').submit(function(event){
+                if(!this.checkValidity())
+                {
+                    event.preventDefault();
+                    $('#form1 :input:visible[required="required"]').each(function()
+                    {
+                        if(!this.validity.valid)
+                        {
+                            $(this).focus();
+                            // break
+                            return false;
+                        }
+                    });
+                }
+                else{
+                    event.preventDefault();
+                    var name = document.getElementById('id_name').value;
+                    var instruction = document.getElementById('id_instruction').value;
+                    // alert(name);
+                    $.ajax({
+                        cache:false,
+                        type:"POST",
+                        url:"{% url 'goods:create_shops' %}",
+                        data:{"name":name,"instruction":instruction},
+                        dataType:'json',
+                        async:true,
+                        beforeSend:function(xhr, settings) {
+                            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                        },
+                        success:function(returnValue){
+                            if(returnValue == 1){
+                                alert('添加成功');
+                                window.location.reload();//刷新当前页面
+                            }
+                            else{
+                                document.getElementById('status_id').innerText='该商铺已存在'
+                            }
+                        },
+                        error: function (returnValue) {
+                                alert("提交失败！");
+                            }
+                    });
+                }
+            });
+        });
+        // $("#form1").on("submit", function submit_form(ev) {
+
+        //     ev.preventDefault();
+        // })
+    </script>
+{% endblock %}
+
+{% block content %}
+        <div class="container">
+            <table border="0px" style="margin-bottom: 20px;">
+                <tr>
+                   <td>
+                        <input onclick="create_shop()" class="form-control" type="submit" value="添加商铺" style="width: 85.2px;color: dodgerblue;margin-top: 10px;margin-left: 20px;margin-right: 850px;">
+                    </td>
+                </tr>
+            </table>
+        </div>
+    <div class="container" style="margin-bottom: 20px">
+        {% for shop in shops %}
+            <div class="col-md-2" style="padding: 0px;height: 210px;">
+                <a href="manage/{{ shop.id }}"><img src="/media/picture/shop.png" width="150" height="150"/></a>
+                <div style="width: 150px;text-align: center;display:block;word-wrap:break-word;"><strong>{{ shop.name|truncatechars_html:10 }}</strong></div>
+                <div style="width: 150px;text-align: center;display:block;word-wrap:break-word;">{{ shop.instruction|truncatechars_html:10 }}</div>
+            </div>
+        {% endfor %}
+    </div>
+<!--遮挡层-->
+    <div onclick="c_cancel()" id="s_cover" style="opacity:0.1;background-color:#000;width:100%;height:100%;position: fixed;left:0;top:0;display:none;overflow: hidden;"></div>
+<!--弹出层，-->
+    <div id="create_shop" style=" width:600px;height:300px;z-index:1001;
+    position: fixed; display:none;top:18%; left:30%;background-color: ghostwhite">
+
+         <table style="width: 100%;">
+             <tr style="padding-top: 5px">
+                 <td style="width: 500px;height: 50px;padding: 20px;">
+                     <h2>添加商铺</h2>
+                     <form id="form1" method="post">
+                        {% csrf_token %}
+                        {% bootstrap_form form %}
+                        <span id="status_id" style="color: red">{{ status }}</span>
+                        <button  type="submit" id="add_shop" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:absolute;left: 30%;width: 60px;height: 35px;">添加</button>
+                        <button onclick="c_cancel()" type="button" id="cancel" class="form-control" style="color: dodgerblue;font-size: 20px;padding: 0px;position:absolute;right: 40%;width: 60px;height: 35px;">取消</button>
+                    </form>
+                 </td>
+             </tr>
+         </table>
+    </div>
+{% endblock %}

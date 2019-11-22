@@ -1,0 +1,88 @@
+{% extends "users/base.html" %}
+{% load bootstrap3 %}
+
+{% block header %}
+    <link rel="stylesheet" href="/users/static/myPagination/myPagination.css" />
+    <script src="/users/static/myPagination/myPagination.js"></script>
+    <script type="text/javascript">
+        function delete_search(obj) {
+            r = confirm('确认删除该记录吗？');
+            if(r==true){
+                location.href = '/goods/delete_shops_'+obj;
+            }
+        }
+        window.onload=function () {
+            new Page({
+                id: 'pagination',
+                pageTotal: {{ searches.paginator.num_pages }}, //必填,总页数
+                pageAmount: 10,  //每页多少条
+                dataTotal: {{ searches.paginator.count }}, //总共多少条数据
+                curPage:{{ searches.number|safe }}, //初始页码,不填默认为1
+                pageSize: 5, //分页个数,不填默认为5
+                showPageTotalFlag:true, //是否显示数据统计,不填默认不显示
+                showSkipInputFlag:true, //是否支持跳转,不填默认不显示
+                getPage: function (page) {
+                    //获取当前页数
+                    {#console.log(page);#}
+                    document.getElementById('page').value = page;
+                    document.getElementById('search').click();
+                    {#document.getElementById("<%=currentpage.ClientID%>").value = page;#}
+                    {#document.getElementById("<%=award.ClientID%>").value = 0;#}
+                    {#document.getElementById("<%=refresh.ClientID%>").click();#}
+                },
+            })
+        };
+        function search_d() {
+            document.getElementById('page').value = '';
+            document.getElementById('search').click();
+        }
+    </script>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <form id="form1" method="post" action="/goods/manage_search">
+            {% csrf_token %}
+            <table border="0" style="position: relative;left: 56%;">
+                <tr>
+                    <td style="padding-right: 10px"><label>搜索内容</label><input name="key" class="form-control" width="100px" value="{{ key__contains }}"></td>
+                    <td style="padding-right: 10px"><label>搜索用户</label><input name="name" class="form-control" width="100px" value="{{ name__username__contains }}"></td>
+                    <td valign="bottom"><button type="button" onclick="search_d()" class="btn btn-primary">搜索</button></td>
+                    <button id="search" type="submit" style="display: none;">搜索</button>
+                    <input id="page" type="hidden" name="page" value="{{ page }}">
+                </tr>
+            </table>
+        </form>
+        <br>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel panel-body" style="background: #ffffff99;">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <td width=20% align=center>记录id</td>
+                                <td width=20% align=center>搜索内容</td>
+                                <td width=20% align=center>搜索用户</td>
+                                <td width=20% align=center>搜索时间</td>
+                            </tr>
+                        </thead>
+                        {% for search in searches %}
+                            <div class="listgroup">
+                                <div class="listgroup-item">
+                                    <tr>
+                                        <td align="center">{{search.id}}</td>
+                                        <td align="center">{{search.key}}</td>
+                                        <td align="center">{{search.name}}</td>
+                                        <td align="center">{{search.time}}</td>
+                                        <td align="center"><a onclick="delete_search({{ search.id }})"><span class="glyphicon glyphicon-trash"></span></a> </td>
+                                    </tr>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="pagination" class="pagination" onsubmit="getpage()" onclick="getpage()" style="position: relative;left: 25%;bottom: 5px;"></div>
+        </div>
+    </div>
+{% endblock %}
